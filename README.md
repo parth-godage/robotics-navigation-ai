@@ -1,37 +1,61 @@
-# Object Detection & Distance Estimation for Robotics Navigation
+# Robotics Navigation AI: Object Detection & Distance Estimation
 
-**Author:** Parth Sudam Godage  
-**Email:** parthgodage05@gmail.com  
+**Author:** Parth Godage  
+**Email:** [parthgodage05@gmail.com](mailto:parthgodage05@gmail.com)  
 **Phone:** +91 9322479325
 
-## Project Overview
+A computer-vision prototype for robotics navigation that detects traffic cones and barriers, estimates approximate object distance from a camera image, annotates detections, and benchmarks inference speed on CPU and GPU.
 
-This project implements a computer-vision pipeline for robotics navigation. It detects traffic cones and barriers using a custom-trained YOLO11n object-detection model, estimates approximate object distance from the camera image, annotates detections, and benchmarks inference speed on CPU and GPU.
+> **Assignment:** Machine Learning Technical Assignment — ERIC Robotics
 
-The project was developed as a machine-learning technical assignment for **ERIC Robotics**.
+## Project Highlights
 
-> **Important limitation:** The current distance estimator uses assumed object dimensions and camera focal length. Its output is an approximate camera-perspective estimate, not a calibrated or safety-certified distance measurement. Do not use it to control a real robot without proper camera calibration and validation.
+- Fine-tuned **YOLO11n** model for two custom classes: `barrier` and `cone`.
+- Draws bounding boxes and confidence scores around detected objects.
+- Estimates approximate distance using bounding-box pixel height.
+- Saves annotated detection output images.
+- Benchmarks model inference on CPU and an NVIDIA RTX 2050 GPU.
+- Uses PyTorch, Ultralytics YOLO, and OpenCV.
 
-## Features
+## Results
 
-- Custom YOLO11n model fine-tuned to detect:
-  - `cone`
-  - `barrier`
-- Confidence scores and bounding boxes for detected objects.
-- Approximate monocular distance estimation for supported classes.
-- Annotated output images with bounding boxes and distance labels.
-- CPU/GPU inference benchmark.
-- GPU acceleration using an NVIDIA CUDA-compatible GPU when available.
-- Dataset validation and training results produced with Ultralytics.
+### Inference benchmark
 
-## Technology Stack
+| Device | Average latency | Throughput |
+|---|---:|---:|
+| CPU | 27.95 ms/image | 35.78 FPS |
+| NVIDIA RTX 2050 GPU | 9.46 ms/image | 105.71 FPS |
+
+These are results from the local single-image benchmark and do not represent guaranteed end-to-end robot-camera performance.
+
+### Validation metrics
+
+| Class | Precision | Recall | mAP50 | mAP50-95 |
+|---|---:|---:|---:|---:|
+| Barrier | 0.165 | 0.610 | 0.185 | 0.126 |
+| Cone | 0.532 | 0.919 | 0.709 | 0.386 |
+| **Overall** | **0.348** | **0.765** | **0.447** | **0.256** |
+
+The validation snapshot contains 122 images and 202 instances. Cone detection performs better than barrier detection, so barrier labels and training data require further improvement.
+
+## Example Output
+
+The project saves annotated results to `outputs/robotics_result.jpg` and `outputs/detection_result.jpg`, depending on which test script is run.
+
+To display a result image directly on the GitHub README, make sure the image is committed at the referenced path. Then you can add:
+
+```markdown
+![Robotics detection result](outputs/robotics_result.jpg)
+```
+
+## Tech Stack
 
 - Python
 - Ultralytics YOLO11n
 - PyTorch
 - OpenCV
 - NumPy
-- CUDA-enabled NVIDIA GPU (for GPU inference/training)
+- CUDA-enabled NVIDIA GPU for accelerated training/inference
 
 ## Repository Structure
 
@@ -39,13 +63,12 @@ The project was developed as a machine-learning technical assignment for **ERIC 
 robotics-navigation-ai/
 ├── configs/
 ├── data/
-│   └── bdd_yolo/                 # BDD-derived data, if included locally
 ├── models/
-│   └── cone_barrier_best.pt      # Trained weights (if included)
+│   └── cone_barrier_best.pt
 ├── outputs/
+│   ├── benchmark_results.md
 │   ├── detection_result.jpg
-│   ├── robotics_result.jpg
-│   └── benchmark_results.md
+│   └── robotics_result.jpg
 ├── scripts/
 │   ├── benchmark.py
 │   ├── check_classes.py
@@ -54,31 +77,28 @@ robotics-navigation-ai/
 │   └── test_detector.py
 ├── src/
 │   ├── detection/
-│   │   └── detector.py
 │   ├── distance/
-│   │   └── estimator.py
 │   ├── optimization/
 │   ├── pipeline/
 │   └── visualization/
-│       └── annotator.py
 ├── data.yaml
 ├── test.png
 ├── requirements.txt
 └── README.md
 ```
 
-> Update this tree if your final GitHub repository omits datasets, generated outputs, or model weights. Large datasets and model weights may be better shared through a release or external download link, subject to dataset license terms.
+The exact files may vary depending on which data, weights, and generated results are included in the repository. Do not commit virtual environments or large raw datasets.
 
 ## Setup
 
 ### 1. Clone the repository
 
 ```bash
-git clone <YOUR_GITHUB_REPOSITORY_URL>
+git clone https://github.com/parth-godage/robotics-navigation-ai.git
 cd robotics-navigation-ai
 ```
 
-### 2. Create and activate a virtual environment
+### 2. Create a virtual environment
 
 **Windows PowerShell:**
 
@@ -87,7 +107,7 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 ```
 
-If PowerShell blocks activation, you can run the virtual-environment Python directly or use Command Prompt activation:
+If PowerShell blocks activation, try Command Prompt:
 
 ```bat
 .venv\Scripts\activate.bat
@@ -95,14 +115,14 @@ If PowerShell blocks activation, you can run the virtual-environment Python dire
 
 ### 3. Install dependencies
 
-Create a `requirements.txt` with the dependencies used by the project, then run:
+If the repository includes `requirements.txt`:
 
-```bash
+```powershell
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Minimum packages used by the current pipeline:
+Core packages used by the current project include:
 
 ```text
 ultralytics
@@ -112,167 +132,95 @@ torch
 torchvision
 ```
 
-For GPU support, install the PyTorch build compatible with your operating system, Python version, and NVIDIA driver by following the official PyTorch installation selector. A CPU-only PyTorch installation can run inference on the CPU, but `device=0` requires a supported CUDA-enabled PyTorch installation and compatible NVIDIA GPU.
+For GPU support, install the PyTorch build compatible with your Python version, OS, NVIDIA driver, and CUDA support. See the official [PyTorch installation guide](https://pytorch.org/get-started/locally/).
 
-## Model Weights
+## Run Detection
 
-The detector expects the custom-trained model at:
+From the repository root:
+
+```powershell
+python -m scripts.test_detector
+```
+
+This loads the configured custom model, runs inference on `test.png`, prints detections and approximate distances where supported, and saves an annotated image under `outputs/`.
+
+The custom model weights are expected at:
 
 ```text
 models/cone_barrier_best.pt
 ```
 
-The trained weights were produced by fine-tuning `yolo11n.pt` on a merged cone/barrier dataset. The custom model's class mapping is:
+If the weights are not included in the repository, obtain them separately and place them at that path, or update the model path in `src/detection/detector.py`.
 
-```text
-0: barrier
-1: cone
-```
-
-If the weights are not committed to GitHub, place the downloaded file at the path above or update `MODEL_PATH` in the scripts to the actual path.
-
-## Train the Model
-
-The dataset used for training must follow the Ultralytics YOLO detection format. Its YAML file should point to valid image directories and define exactly the classes used by the label files.
-
-Example `data.yaml`:
-
-```yaml
-path: D:/robotics-runs/cone-barrier-merged
-train: train/images
-val: valid/images
-test: test/images
-
-nc: 2
-names:
-  0: barrier
-  1: cone
-```
-
-Make sure the dataset folders and label files exist before training. Keep the dataset's actual license and attribution with your submission.
-
-Example training command (Windows PowerShell):
-
-```powershell
-yolo detect train model=yolo11n.pt data="D:/robotics-runs/cone-barrier-merged/data.yaml" epochs=30 imgsz=640 batch=4 device=0 workers=0 project="runs/train" name=cone_barrier_v2
-```
-
-Training output is saved under the Ultralytics run directory. Use the `best.pt` generated by that run for inference. Your actual run may have a suffix such as `cone_barrier_v2-4`, so verify the path rather than assuming it.
-
-## Run Detection
-
-From the repository root, with the virtual environment activated:
-
-```powershell
-python -m scripts.test_detector
-```
-
-The script loads the custom model, detects objects in `test.png`, estimates distances where supported, prints detection details, and saves an annotated image to:
-
-```text
-outputs/robotics_result.jpg
-```
-
-If you run the script as `python scripts/test_detector.py` and see `ModuleNotFoundError: No module named 'src'`, run it as a module from the project root:
-
-```powershell
-python -m scripts.test_detector
-```
-
-To run prediction directly with Ultralytics:
+You can also run prediction directly with Ultralytics:
 
 ```powershell
 yolo detect predict model="models/cone_barrier_best.pt" source="test.png" imgsz=640 conf=0.25 device=0 save=True
 ```
 
-## Distance Estimation
+## Train the Model
 
-The current pipeline estimates distance from the object's pixel height:
+The training dataset must use the Ultralytics YOLO detection format. Update the paths in your dataset YAML to match the dataset folders on your own machine.
+
+Example command:
+
+```powershell
+yolo detect train model=yolo11n.pt data="D:/robotics-runs/cone-barrier-merged/data.yaml" epochs=30 imgsz=640 batch=4 device=0 workers=0 project="runs/train" name=cone_barrier_v2
+```
+
+The command above uses a local example path; replace it with the correct location of your dataset. Training output and checkpoints are saved in the Ultralytics run directory. Use the `best.pt` produced by your actual run.
+
+## Distance Estimation Method
+
+The prototype uses a simplified monocular distance formula:
 
 \[
 \text{distance} \approx \frac{f \times H}{h}
 \]
 
-where:
+Where:
 
-- \(f\) = camera focal length in pixels
-- \(H\) = assumed real-world height of the object
-- \(h\) = detected object height in pixels
+- `f` is the camera focal length in pixels.
+- `H` is the assumed real-world height of the object.
+- `h` is the detected object's height in pixels.
 
-This method is a simplified monocular estimate. Accuracy depends on camera calibration, the object's actual dimensions, bounding-box quality, camera angle, and whether the assumed dimensions match the object. The current estimates should be treated as illustrative until validated against measured distances.
+This estimate depends on camera calibration, object dimensions, camera angle, and bounding-box quality. The current estimates are **approximate and not calibrated ground-truth measurements**. Do not use them for real-world robot control without camera calibration, measured-distance validation, and safety testing.
 
-For a robotics-grade implementation, calibrate the camera, use verified object dimensions, collect ground-truth distance measurements, and report error metrics such as MAE/RMSE on a held-out test set. Stereo/depth sensors or depth-estimation models may improve reliability.
+## Benchmark
 
-## Performance Benchmark
-
-The benchmark script runs repeated predictions on a test image and reports average latency and frames per second (FPS). Results depend on hardware, image size, model, software versions, and benchmark methodology.
-
-### Recorded local benchmark
-
-| Device | Average latency | Throughput |
-|---|---:|---:|
-| CPU | 27.95 ms/image | 35.78 FPS |
-| NVIDIA RTX 2050 GPU | 9.46 ms/image | 105.71 FPS |
-
-These are the measured results from the current local benchmark run, not a guarantee of end-to-end camera-to-robot performance. The benchmark measures repeated model prediction on a single image; full pipeline latency can be higher due to image capture, preprocessing, postprocessing, and application overhead.
-
-Run the benchmark again with:
+Run the benchmark script from the repository root:
 
 ```powershell
 python scripts/benchmark.py
 ```
 
-## Validation Snapshot
+The benchmark repeats inference on a test image and reports latency and FPS. Actual results vary by hardware, model, image size, software versions, and benchmark methodology.
 
-A validation run for the cone/barrier model reported the following metrics:
+## Limitations
 
-| Class | Precision | Recall | mAP50 | mAP50-95 |
-|---|---:|---:|---:|---:|
-| Barrier | 0.165 | 0.610 | 0.185 | 0.126 |
-| Cone | 0.532 | 0.919 | 0.709 | 0.386 |
-| **Overall** | **0.348** | **0.765** | **0.447** | **0.256** |
+- The custom model has two classes: `barrier` and `cone`.
+- Stop-sign detection is not part of the custom two-class model; it requires a separate model or an explicitly implemented additional class.
+- Distance estimation is approximate and has not been validated against calibrated ground-truth measurements.
+- Barrier detection metrics are currently weak and need improvement.
+- Testing on one sample image is not enough to demonstrate generalization.
+- The benchmark measures repeated single-image prediction, not the complete camera-to-robot pipeline.
+- This project is a prototype, not a safety-certified robotics navigation system.
 
-These are the metrics visible in the current training/validation output. The validation set contained 122 images and 202 instances. Results suggest cone detection is stronger than barrier detection, so the barrier dataset/labels need further improvement. Do not describe the model as production-ready based on these metrics alone.
+## Future Work
 
-## Edge-Device Optimization Ideas
+- Improve the quality, diversity, and balance of barrier training labels.
+- Evaluate on a held-out set of real-world scenes, lighting conditions, and distances.
+- Calibrate the camera and report distance MAE/RMSE against measured ground truth.
+- Add video/webcam inference and end-to-end latency measurement.
+- Export to ONNX or TensorRT where supported and compare accuracy/speed.
+- Evaluate FP16 or INT8 quantization on the target edge device.
 
-Potential next steps for deployment on resource-constrained hardware:
+## Dataset & Attribution
 
-1. Export the trained model to ONNX or TensorRT where the target hardware supports it.
-2. Benchmark exported models against the PyTorch checkpoint.
-3. Evaluate FP16 or INT8 quantization where supported, measuring accuracy changes.
-4. Reduce inference image size if acceptable for small/distant objects.
-5. Measure end-to-end latency and memory use on the actual target device.
-6. Test on a varied, held-out dataset with different lighting, weather, distances, and object sizes.
+Preserve the original dataset's attribution and license terms in the repository. Include dataset details and download instructions if the raw data cannot be redistributed. Do not claim that all datasets are public domain unless their actual license confirms it.
 
-## Known Limitations
-
-- The model currently has two trained classes: `barrier` and `cone`. Stop-sign detection is not part of these custom model classes; it may be provided by a separate pretrained model if that integration is implemented.
-- Distance estimates are approximate and not camera-calibrated.
-- Barrier validation performance is relatively low and needs improvement.
-- A single sample image is useful for a smoke test, but it is not enough to establish generalization.
-- The current benchmark does not represent full real-time robotics deployment.
-- No real-robot safety validation is claimed.
-
-## Future Improvements
-
-- Add more diverse, correctly labelled cone and barrier images.
-- Audit class labels and merge duplicate barrier labels into one consistent class.
-- Tune confidence and IoU thresholds on a validation set.
-- Calibrate the camera and evaluate distance-estimation error.
-- Evaluate on held-out real-world images and videos.
-- Add video/webcam inference and FPS measurement for the complete pipeline.
-- Export and benchmark an optimized edge-device model.
-
-## Acknowledgements
-
-- Ultralytics YOLO for the object-detection framework.
-- The dataset creators and providers used for model training. Dataset attribution and license terms should be preserved in the final repository.
-
-## Contact
+## Author
 
 **Parth Godage**  
 Email: [parthgodage05@gmail.com](mailto:parthgodage05@gmail.com)  
 Phone: +91 9322479325
-#   r o b o t i c s - n a v i g a t i o n - a i  
- 
