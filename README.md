@@ -40,14 +40,15 @@ The validation snapshot contains 122 images and 202 instances. Cone detection pe
 
 ## Example Output
 
-The project saves annotated results to `outputs/robotics_result.jpg` and `outputs/detection_result.jpg`, depending on which test script is run.
+### Robotics Navigation — Cone, Barrier and Stop Sign Detection
 
-To display a result image directly on the GitHub README, make sure the image is committed at the referenced path. Then you can add:
+![Robotics Detection Result](outputs/robotics_result.jpg)
 
-```markdown
-![Robotics detection result](outputs/robotics_result.jpg)
-```
+### Additional Detection Result
 
+![Object Detection Result](outputs/detection_result.jpg)
+
+The system detects objects using a custom-trained YOLO11n model and displays bounding boxes, confidence scores, and approximate distance estimates.
 ## Tech Stack
 
 - Python
