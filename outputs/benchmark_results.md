@@ -1,22 +1,10 @@
-
-# CPU vs GPU Benchmark
-
-## Hardware
-- GPU: NVIDIA GeForce RTX 2050 4GB
-- Framework: PyTorch + Ultralytics YOLO
-- Input: Single test image
-- Benchmark: 5 warm-up runs, 30 measured runs
-
 ## Results
 
-| Metric | CPU | RTX 2050 GPU |
+| Metric | CPU | NVIDIA RTX 2050 GPU |
 |---|---:|---:|
-| Average latency | 38.47 ms | 11.14 ms |
-| Throughput | 25.99 FPS | 89.78 FPS |
+| Average latency | 27.95 ms | 9.46 ms |
+| Throughput | 35.78 FPS | 105.71 FPS |
 
-GPU throughput was approximately 3.45x the CPU throughput
-in this test.
+The GPU achieved approximately **2.96× the CPU throughput** in this benchmark run.
 
-Note: Results depend on hardware, model, image size,
-software versions, and benchmark conditions.
-
+**Note:** Results were measured using a single test image and depend on hardware, model, image size, software versions, and benchmark conditions.
